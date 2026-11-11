@@ -108,6 +108,27 @@ await revisar('un admin sí puede borrar (204)', async () => {
   if (r.status !== 204) return `respondió ${r.status}`
 })
 
+console.log('\nPASO 5 · Cada uno lo suyo')
+await revisar('el dueño de un libro nuevo sale del token, no del body', async () => {
+  const token = await tokenDe('beto@club.com', 'libros123')
+  const r = await pedir('POST', '/libros', { token, body: { titulo: 'Cuentos', autor: 'Horacio Quiroga', lector: String(ana._id) } })
+  if (r.status !== 201) return `respondió ${r.status}`
+  if (String(r.json?.data?.lector) !== String(beto._id)) return 'el libro quedó a nombre de otra persona'
+})
+await revisar('"mis libros" trae solo los propios', async () => {
+  const token = await tokenDe('beto@club.com', 'libros123')
+  const r = await pedir('GET', '/libros/mios', { token })
+  const ajenos = (r.json?.data ?? []).filter((l) => String(l.lector) !== String(beto._id))
+  if (r.status !== 200) return `respondió ${r.status}`
+  if (ajenos.length) return `trajo ${ajenos.length} libro(s) de otras personas`
+})
+await revisar('nadie marca como leído un libro ajeno (404)', async () => {
+  const token = await tokenDe('beto@club.com', 'libros123')
+  const libro = await Libro.findOne({ lector: ana._id })
+  const r = await pedir('PATCH', `/libros/${libro._id}/leido`, { token })
+  if (r.status !== 404) return `respondió ${r.status}`
+})
+
 await cargarDatos()
 await mongoose.disconnect()
 console.log(`\n${ok === total ? '🎉' : '📋'} ${ok} de ${total} revisiones bien. La base quedó como la deja la semilla.`)

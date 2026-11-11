@@ -7,19 +7,22 @@ export async function listarLibros(req, res) {
 }
 
 export async function listarMios(req, res) {
-  const libros = await Libro.find({ lector: req.usuario.id }).sort({ titulo: 1 })
+  // 🚧 PASO 5 · c. Hoy trae todos: que traiga solo los del usuario del token.
+  const libros = await Libro.find().sort({ titulo: 1 })
   res.json({ data: libros, error: null })
 }
 
 export async function crearLibro(req, res) {
-  const { titulo, autor, paginas } = req.body
-  const libro = await Libro.create({ titulo, autor, paginas, lector: req.usuario.id })
+  // 🚧 PASO 5 · a. El dueño (lector) tiene que salir del token, no del body.
+  const { titulo, autor, paginas, lector } = req.body
+  const libro = await Libro.create({ titulo, autor, paginas, lector })
   res.status(201).json({ data: libro, error: null })
 }
 
 export async function marcarLeido(req, res) {
-  const libro = await Libro.findOneAndUpdate(
-    { _id: req.params.id, lector: req.usuario.id },
+  // 🚧 PASO 5 · b. Que solo encuentre el libro si es del usuario del token.
+  const libro = await Libro.findByIdAndUpdate(
+    req.params.id,
     { leido: true },
     { returnDocument: 'after' },
   )

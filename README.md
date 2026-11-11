@@ -43,13 +43,14 @@ npm run dev                # → http://localhost:5173
 
 ## Parte 1 · Backend (API)
 
-Ya está hecho todo lo demás: modelos, controllers de libros, `soloRol`, la semilla, el `.env` y un revisor automático. Completás **4 lugares marcados con 🚧**, sin crear archivos.
+Ya está hecho todo lo demás: modelos, `soloRol`, la semilla, el `.env` y un revisor automático. Completás **5 lugares marcados con 🚧**, sin crear archivos.
 
 ```
 backend/
 ├── controllers/auth.controller.js   🚧 PASO 1 y 2
 ├── middlewares/auth.js              🚧 PASO 3
 ├── routes/libros.routes.js          🚧 PASO 4
+├── controllers/libros.controller.js 🚧 PASO 5
 └── middlewares/auth.test.js         ➕ plus opcional
 ```
 
@@ -88,7 +89,16 @@ Ya está hecho leer el header. Falta verificar el token.
 > - El middleware va entre la ruta y el controller: `router.post('/', verificarToken, crearLibro)`.
 > - Para borrar, dos middlewares en orden: `verificarToken, soloRol('admin'), borrarLibro`. `verificarToken` va primero porque crea `req.usuario`, que `soloRol` necesita.
 
-**Listo cuando…** `npm run probar` termina con **🎉 11 de 11 revisiones bien**.
+### 5 · Cada uno lo suyo (`controllers/libros.controller.js`) · ~5 min
+a. Al crear un libro, el dueño (`lector`) tiene que salir del token, no del body: así nadie carga un libro a nombre de otra persona.
+b. Marcar como leído: que solo encuentre el libro si, además del id, es del usuario del token.
+c. "Mis libros": que traiga solo los del usuario del token, no todos.
+> 💡 **Pistas**
+> - En `crearLibro`, usá `req.usuario.id` como `lector` en vez del que venga en el body.
+> - En `marcarLeido`, el filtro de `findOneAndUpdate` pide las dos cosas: `{ _id: req.params.id, lector: req.usuario.id }`. Si el libro es de otra persona, no lo encuentra y devuelve `null`.
+> - En `listarMios`, agregale el filtro `{ lector: req.usuario.id }` a `Libro.find(...)`.
+
+**Listo cuando…** `npm run probar` termina con **🎉 14 de 14 revisiones bien**.
 
 #### ➕ Plus opcional · Pruebas con Jest
 `middlewares/auth.test.js` ya tiene un test de `soloRol`. Completá el segundo (marcado con 🚧) y corré `npm test`. No hace falta levantar la API.
